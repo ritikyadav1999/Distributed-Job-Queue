@@ -10,7 +10,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface JobRepo extends JpaRepository<Job, UUID> {
-    @Modifying
     @Transactional
     @Query(value = """
                UPDATE jobs
@@ -25,4 +24,7 @@ public interface JobRepo extends JpaRepository<Job, UUID> {
                RETURNING *;
     """ , nativeQuery = true)
     Optional<Job> pickNextJob();
+
+    Optional<Job> findById(UUID id);
+
 }

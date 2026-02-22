@@ -1,0 +1,29 @@
+package org.example.disributed_job_queues.worker;
+
+import lombok.RequiredArgsConstructor;
+import org.example.disributed_job_queues.entity.Job;
+import org.example.disributed_job_queues.service.JobService;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+@Component
+@RequiredArgsConstructor
+public class JobWorker {
+
+    private final JobService jobService;
+
+    @Scheduled(fixedRate = 18000)
+    public void pollAndProcess() {
+        Job job = jobService.pickJob();
+        try {
+            // simulate processing
+            Thread.sleep(3000);
+
+            jobService.markCompleted(job.getId());
+        } catch (Exception e) {
+            jobService.markFailed(job.getId());
+        }
+    }
+
+
+}
