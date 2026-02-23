@@ -1,5 +1,6 @@
 package org.example.disributed_job_queues.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.disributed_job_queues.service.JobService;
 import org.example.disributed_job_queues.dto.CreateJobRequest;
@@ -18,8 +19,8 @@ public class JobController {
     private final JobService jobService;
 
     @PostMapping("/create")
-    public ResponseEntity<Job> createJob(@RequestBody CreateJobRequest request) {
-        Job job = jobService.createJob(request.payload());
+    public ResponseEntity<Job> createJob(@Valid @RequestBody CreateJobRequest request) {
+        Job job = jobService.createJob(request.payload(),request.priority());
         return ResponseEntity.ok(job);
     }
 

@@ -12,3 +12,4 @@ public class DisributedJobQueuesApplication {
         SpringApplication.run(DisributedJobQueuesApplication.class, args);
     }
 }
+ 
