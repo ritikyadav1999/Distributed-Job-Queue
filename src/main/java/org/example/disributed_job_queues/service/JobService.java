@@ -65,4 +65,8 @@ public class JobService {
 
     }
 
+    @Transactional
+    public void pollAndRecover() {
+        int res = jobRepo.recoverStuckJobs();
+    }
 }

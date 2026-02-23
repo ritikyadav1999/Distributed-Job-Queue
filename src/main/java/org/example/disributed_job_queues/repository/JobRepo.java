@@ -29,4 +29,16 @@ public interface JobRepo extends JpaRepository<Job, UUID> {
 
     Optional<Job> findById(UUID id);
 
+
+    @Transactional
+    @Modifying
+    @Query(value = """
+            UPDATE jobs
+            SET status = 'PENDING' ,
+            locked_at = NULL 
+            WHERE (status = 'PROCESSING' AND locked_at < NOW() - INTERVAL '30 seconds')
+    """ , nativeQuery = true
+    )
+    int recoverStuckJobs();
+
 }
