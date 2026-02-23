@@ -13,11 +13,13 @@ public interface JobRepo extends JpaRepository<Job, UUID> {
     @Transactional
     @Query(value = """
                UPDATE jobs
-               SET status = 'PROCESSING'
+               SET status = 'PROCESSING' , 
+               locked_at = Now() , 
+               attempt_count = attempt_count + 1
                WHERE id = (
                    SELECT id FROM jobs
-                   WHERE status = 'PENDING'
-                   ORDER BY created_at
+                   WHERE (status = 'PENDING' AND attempt_count < max_attempts AND (next_retry_at IS NULL OR next_retry_at <= Now())) 
+                   ORDER BY priority DESC , created_at ASC 
                    LIMIT 1
                    FOR UPDATE SKIP LOCKED
                )

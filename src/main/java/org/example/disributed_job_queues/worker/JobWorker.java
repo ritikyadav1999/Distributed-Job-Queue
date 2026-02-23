@@ -6,18 +6,23 @@ import org.example.disributed_job_queues.service.JobService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 @Component
 @RequiredArgsConstructor
 public class JobWorker {
 
     private final JobService jobService;
 
-    @Scheduled(fixedRate = 18000)
+    @Scheduled(fixedDelay = 18000)
     public void pollAndProcess() {
         Job job = jobService.pickJob();
+        if(job == null) {
+            return;
+        }
         try {
             // simulate processing
-            Thread.sleep(3000);
+            Thread.sleep(30000);
 
             jobService.markCompleted(job.getId());
         } catch (Exception e) {

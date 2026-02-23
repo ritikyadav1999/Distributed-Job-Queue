@@ -17,8 +17,10 @@ import java.util.UUID;
 @Table(
         name = "jobs",
         indexes = {
-                @Index(name = "idx_job_status",columnList = "status"),
-                @Index(name = "idx_job_created_at",columnList = "createdAt")
+                @Index(
+                        name = "idx_job_pickup",
+                        columnList = "status, next_retry_at , priority , created-at    "
+                )
         }
 
 )
@@ -44,5 +46,22 @@ public class Job {
     @UpdateTimestamp
     @Column(nullable = false)
     private Instant updatedAt;
+
+    private Instant lockedAt;
+
+    private int attemptCount;
+    private int maxAttempts;
+    private Instant nextRetryAt;
+
+    private int priority;
+
+    @PrePersist
+    public void prePersist() {
+        this.attemptCount = 0;
+        this.maxAttempts = 3;
+        this.nextRetryAt = null;
+  ;  }
+
+
 
 }
