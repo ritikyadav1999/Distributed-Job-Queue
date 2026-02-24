@@ -1,10 +1,13 @@
 package org.example.disributed_job_queues.service;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.example.disributed_job_queues.entity.DeadJob;
 import org.example.disributed_job_queues.entity.Job;
 import org.example.disributed_job_queues.entity.JobPriority;
 import org.example.disributed_job_queues.entity.JobStatus;
+import org.example.disributed_job_queues.repository.DeadJobRepo;
 import org.example.disributed_job_queues.repository.JobRepo;
 import org.example.disributed_job_queues.utils.JobPriorityMapping;
 import org.springframework.stereotype.Service;
@@ -18,6 +21,8 @@ import java.util.UUID;
 public class JobService {
 
     private final JobRepo jobRepo;
+    private final DeadJobRepo deadJobRepo;
+    private final MeterRegistry meterRegistry;
 
     @Transactional
     public Job createJob(String payload, JobPriority prority){
@@ -40,6 +45,7 @@ public class JobService {
         if(job.isPresent()){
             job.get().setStatus(JobStatus.COMPLETED);
             job.get().setLockedAt(null);
+            meterRegistry.counter("jobs.completed").increment();
         }
 
     }
@@ -53,10 +59,20 @@ public class JobService {
                 job.get().setStatus(JobStatus.PENDING);
                 job.get().setNextRetryAt(Instant.now().plusSeconds(delaySeconds));
                 job.get().setLockedAt(null);
+
+                meterRegistry.counter("jobs.reteried").increment();
             }
             else  {
-                job.get().setStatus(JobStatus.FAILED);
-                job.get().setLockedAt(null);
+                DeadJob deadJob = new DeadJob();
+                deadJob.setId(job.get().getId());
+                deadJob.setAttemptCount(job.get().getAttemptCount());
+                deadJob.setPayload(job.get().getPayload());
+                deadJob.setCreatedAt(job.get().getCreatedAt());
+                deadJob.setMaxAttempts(job.get().getMaxAttempts());
+
+                deadJobRepo.save(deadJob);
+                jobRepo.delete(job.get());
+                meterRegistry.counter("jobs.dead").increment();
             }
         }
         else  {

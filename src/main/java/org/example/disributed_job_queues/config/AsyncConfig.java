@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
+import java.util.concurrent.ThreadPoolExecutor;
+
 @Configuration
 public class AsyncConfig {
 
@@ -15,6 +17,11 @@ public class AsyncConfig {
         executor.setMaxPoolSize(10);  // max thread
         executor.setQueueCapacity(50); //waiting task
         executor.setThreadNamePrefix("job-worker-");
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(60);
+        executor.setRejectedExecutionHandler(
+                new ThreadPoolExecutor.CallerRunsPolicy()
+        );
         executor.initialize();
         return executor;
     }
