@@ -41,4 +41,6 @@ public interface JobRepo extends JpaRepository<Job, UUID> {
     )
     int recoverStuckJobs();
 
+
+
 }
